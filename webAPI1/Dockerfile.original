@@ -1,0 +1,29 @@
+# Start from the .NET Core SDK image
+FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
+
+# Set the working directory inside the container
+WORKDIR /app
+
+# Copy the project files to the container
+COPY . .
+
+# Build the project
+#FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build "webAPIDocker/webAPI2.csproj"
+RUN dotnet restore
+RUN dotnet build #-c Release --no-restore
+RUN dotnet publish # -c Release -o out --no-restore
+
+# Start from a clean image
+FROM mcr.microsoft.com/dotnet/aspnet:7.0 AS runtime
+
+# Set the working directory inside the container
+WORKDIR /app
+
+# Copy the published output from the build stage
+COPY --from=build /app .
+
+# Expose the port used by the microservice	
+EXPOSE 80
+
+# Set the entry point for the container
+ENTRYPOINT ["dotnet", "webAPI1.dll"]
